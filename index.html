@@ -7,6 +7,11 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="Base-30 Abacus" />
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
+  <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="icon-180.png" />
+  <link rel="apple-touch-icon" sizes="192x192" href="icon-192.png" />
+  <link rel="apple-touch-icon" sizes="512x512" href="icon-512.png" />
   <title>Living Abacus — Base 30</title>
   <style>
     :root {
@@ -453,7 +458,7 @@
     const DIGITS = [
       "0","1","2","3","4","5","6","7","8","9","A",
       "1¹","2¹","3¹","4¹","5¹","6¹","7¹","8¹","9¹","A¹",
-      "1²","2²","3²","4²","5²","6²","7²","8²","9²","10²"
+      "1²","2²","3²","4²","5²","6²","7²","8²","9²","10"
     ];
     const DIGIT_VALUE = Object.fromEntries(DIGITS.map((g, i) => [g, i]));
 
@@ -587,7 +592,8 @@
     function nextToken(s, i) {
       const rest = s.slice(i);
       if (!rest) return null;
-      if (rest.startsWith("10²") || rest.startsWith("10^2")) return rest.startsWith("10²") ? "10²" : "10^2";
+      // "10" is the single digit for value 30 (longest-match before bare 1 + 0)
+      if (rest.startsWith("10") && !/^[¹²]/.test(rest.slice(2))) return "10";
       if (rest.startsWith("A¹") || rest.startsWith("A^1")) return rest.startsWith("A¹") ? "A¹" : "A^1";
       if (/^[1-9][¹²]/.test(rest)) return rest.slice(0, 2);
       if (/^[1-9]\^[12]/.test(rest)) return rest.slice(0, 3);
@@ -606,8 +612,7 @@
       while (i < t.length) {
         const tok = nextToken(t, i);
         if (!tok) return null;
-        tokens.push(tok === "10^2" ? "10²"
-          : tok === "A^1" ? "A¹"
+        tokens.push(tok === "A^1" ? "A¹"
           : tok.endsWith("^1") ? tok[0] + "¹"
           : tok.endsWith("^2") ? tok[0] + "²"
           : tok);
@@ -728,7 +733,7 @@
     keys.appendChild(makeKey("0", "op op-zero"));
     ["1","2","3","4","5","6","7","8","9","A",
      "1¹","2¹","3¹","4¹","5¹","6¹","7¹","8¹","9¹","A¹",
-     "1²","2²","3²","4²","5²","6²","7²","8²","9²","10²"
+     "1²","2²","3²","4²","5²","6²","7²","8²","9²","10"
     ].forEach((k) => keys.appendChild(makeKey(k)));
 
     field.addEventListener("click", () => {
