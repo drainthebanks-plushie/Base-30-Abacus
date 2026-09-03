@@ -168,7 +168,13 @@
     }
     .keypad-board .key.op-plus  { grid-column: 6; grid-row: 1 / span 2; }
     .keypad-board .key.op-minus { grid-column: 6; grid-row: 3 / span 2; }
-    .keypad-board .key.op-zero  { grid-column: 6; grid-row: 5 / span 2; }
+    .keypad-board .key.op-zero  {
+      grid-column: 6;
+      grid-row: 5 / span 2;
+      font-weight: 400;
+      font-size: 1.05rem;
+      letter-spacing: 0.06em;
+    }
     .key {
       appearance: none;
       border: 2px solid var(--brass-dark);
@@ -417,7 +423,6 @@
     <button class="ctrl" type="button" id="clearBtn">Clear to 0</button>
     <div class="set-wrap">
       <button class="ctrl set-field empty" type="button" id="setField" aria-label="Base-30 input">base 30</button>
-      <button class="ctrl" type="button" id="setBtn">Set</button>
     </div>
   </div>
 
@@ -458,7 +463,7 @@
     const DIGITS = [
       "0","1","2","3","4","5","6","7","8","9","A",
       "1¹","2¹","3¹","4¹","5¹","6¹","7¹","8¹","9¹","A¹",
-      "1²","2²","3²","4²","5²","6²","7²","8²","9²","10"
+      "1²","2²","3²","4²","5²","6²","7²","8²","9²"
     ];
     const DIGIT_VALUE = Object.fromEntries(DIGITS.map((g, i) => [g, i]));
 
@@ -592,8 +597,6 @@
     function nextToken(s, i) {
       const rest = s.slice(i);
       if (!rest) return null;
-      // "10" is the single digit for value 30 (longest-match before bare 1 + 0)
-      if (rest.startsWith("10") && !/^[¹²]/.test(rest.slice(2))) return "10";
       if (rest.startsWith("A¹") || rest.startsWith("A^1")) return rest.startsWith("A¹") ? "A¹" : "A^1";
       if (/^[1-9][¹²]/.test(rest)) return rest.slice(0, 2);
       if (/^[1-9]\^[12]/.test(rest)) return rest.slice(0, 3);
@@ -730,10 +733,13 @@
 
     keys.appendChild(makeKey("+", "op op-plus"));
     keys.appendChild(makeKey("−", "op op-minus"));
-    keys.appendChild(makeKey("0", "op op-zero"));
+    const setKey = makeKey("Set", "op op-zero");
+    delete setKey.dataset.k;
+    setKey.dataset.act = "set";
+    keys.appendChild(setKey);
     ["1","2","3","4","5","6","7","8","9","A",
      "1¹","2¹","3¹","4¹","5¹","6¹","7¹","8¹","9¹","A¹",
-     "1²","2²","3²","4²","5²","6²","7²","8²","9²","10"
+     "1²","2²","3²","4²","5²","6²","7²","8²","9²","0"
     ].forEach((k) => keys.appendChild(makeKey(k)));
 
     field.addEventListener("click", () => {
@@ -755,6 +761,10 @@
         hideKeypad();
         return;
       }
+      if (btn.dataset.act === "set") {
+        applySet();
+        return;
+      }
       if (btn.dataset.k) {
         const k = btn.dataset.k === "-" ? "-" : btn.dataset.k;
         if (k === "+" || k === "-") {
@@ -772,8 +782,7 @@
       }
     });
 
-    document.getElementById("clearBtn").addEventListener("click", clearAll);
-    document.getElementById("setBtn").addEventListener("click", () => {
+    function applySet() {
       const n = parseExpression(typed);
       if (!Number.isFinite(n)) return;
       setNumber(n);
@@ -781,7 +790,9 @@
       if (typed === "0") typed = "";
       syncField();
       hideKeypad();
-    });
+    }
+
+    document.getElementById("clearBtn").addEventListener("click", clearAll);
 
     build();
     clearAll();
